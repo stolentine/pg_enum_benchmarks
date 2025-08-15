@@ -1,0 +1,1 @@
+# Banchmark test enum in postgres
