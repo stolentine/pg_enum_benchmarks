@@ -9,6 +9,6 @@ return [
     ],
     "benchmark" => [
         "row_count" => 1_000_000,
-        "test_attempt_count" => 1000,
+        "test_attempt_count" => 500,
     ]
 ];

@@ -1,3 +1,6 @@
+* {
+    box-sizing: border-box;
+}
 body {
     background-color: #efefef;
 
@@ -21,6 +24,9 @@ body {
 }
 
 .query__name {
+    border-top: 1px solid #555555;
+    border-left: 1px solid #555555;
+    border-right: 1px solid #555555;
     text-align: center;
     display: block;
     width: 100%;
@@ -38,3 +44,19 @@ body {
     min-width: 100px;
 }
 
+.options {
+    border: 1px solid #555555;
+    background-color: #fff;
+    padding: 8px 4px;
+    align-self: self-start;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    max-width: 655px;
+}
+
+.options .field {
+    width: fit-content;
+    font-size: 18px;
+}
