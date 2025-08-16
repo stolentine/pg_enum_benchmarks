@@ -1,0 +1,40 @@
+body {
+    background-color: #efefef;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    font-family: arial;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+
+.query {
+    width: fit-content;
+}
+
+.query__name {
+    text-align: center;
+    display: block;
+    width: 100%;
+    background-color: #afafaf;
+}
+
+
+.query table {
+    border-collapse: collapse;
+}
+
+.query table td {
+    border: 1px solid #555555;
+    padding: 4px 8px;
+    min-width: 100px;
+}
+

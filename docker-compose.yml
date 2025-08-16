@@ -1,28 +1,29 @@
 services:
   app:
-    container_name: ${COMPOSE_PROJECT_NAME}-app
-    image: php:8.4-alpine
+    container_name: pg_enum_benchmarks_app
+    build:
+      context: .
     volumes:
       - .:/app
     working_dir: /app
     networks:
       - internal-net
+    command: "php -v"
 
   db:
-    container_name: ${COMPOSE_PROJECT_NAME}-db
+    container_name: pg_enum_benchmarks_db
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
-    user: ${USER_ID}:${GROUP_ID}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: postgres
     ports:
-      - ${DB_EXTERNAL_PORT}:${DB_PORT}
+      - 5432:5432
     networks:
       - internal-net
 
 networks:
   internal-net:
-    name: ${COMPOSE_PROJECT_NAME}-internal-net
+    name: pg_enum_benchmarks_net
     driver: bridge
 
