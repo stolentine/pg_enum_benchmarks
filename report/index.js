@@ -22,7 +22,7 @@ function getQueryHtml(query, name) {
   let rowsHtml = ''
 
   for (row in rowTitles) {
-    if (!rowTitles[row].isEnable) {
+    if (rowTitles[row].name !== '' && !rowTitles[row].isEnable) {
       continue;
     }
 
