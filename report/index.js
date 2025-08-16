@@ -12,11 +12,30 @@ const rowTitles = [
   { name: 'P₇₅', getter: record => record.p_75, isEnable: false},
   { name: 'P₉₀', getter: record => record.p_90, isEnable: false},
   { name: 'P₉₅', getter: record => record.p_95, isEnable: false},
+  { name: 'score', getter: null, isEnable: true},
 ]
+const scoreRowKey = rowTitles.length - 1
 
-let variantsCount = 0;
+const variants = [];
 const getRowCount = () => rowTitles.length;
-const getColumnCount = () => variantsCount + 1;
+const getColumnCount = () => variants.length + 1;
+
+function renderOptions() {
+  let fields = '';
+  for (const key in rowTitles) {
+    const row = rowTitles[key]
+    if (row.name === '') {
+      continue;
+    }
+
+    fields += `<div class="field" onclick="changeRow(${key})">
+      <input type="checkbox" id="${row.name}" name="${row.name}" ${row.isEnable ? 'checked' : ''}/>
+      <label for="min">${row.name}</label>
+    </div>`
+  }
+
+  return `<div class="options">${fields}</div>`
+}
 
 function getQueryHtml(query, name) {
   let rowsHtml = ''
@@ -30,6 +49,10 @@ function getQueryHtml(query, name) {
 
     for (let col = 0; col < getColumnCount(); col++) {
       const dataCell = query[col][row]
+      if (!dataCell) {
+        // rowsHtml += `<td></td>`
+        continue;
+      }
 
       rowsHtml += `<td`
       if (dataCell.rank !== null) {
@@ -52,55 +75,44 @@ function getQueryHtml(query, name) {
   `
 }
 
-function renderOptions() {
-  let fields = '';
-  for (const key in rowTitles) {
-    const row = rowTitles[key]
-    if (row.name === '') {
-      continue;
-    }
-
-    fields += `<div class="field" onclick="changeRow(${key})">
-      <input type="checkbox" id="${row.name}" name="${row.name}" ${row.isEnable ? 'checked' : ''}/>
-      <label for="min">${row.name}</label>
-    </div>`
-  }
-
-  return `<div class="options">${fields}</div>`
-}
-
 function renderStats(data) {
   const tables = [];
 
-  const cell = (value, rank = null) => ({value, rank})
-  variantsCount = Object.keys(data).length
+  const Cell = (value, rank = null) => ({value, rank})
+  for (const queryKey in data) {
+    if (variants.length === 0) {
+      for (const stat of data[queryKey]) {
+        variants.push(stat.type)
+      }
+    }
+    break;
+  }
 
   for (const queryKey in data) {
     const query = data[queryKey];
 
     const firstColumn = [];
     for (const title of rowTitles) {
-      firstColumn.push(cell(title.name))
+      firstColumn.push(Cell(title.name))
     }
 
     tables[queryKey] = [firstColumn]
 
     for (const stat of query) {
-
-      const rowData = [cell(stat.type)]
+      const rowData = [Cell(stat.type)]
 
       for (const rowTitle of rowTitles) {
         if (rowTitle.getter === null) {
           continue;
         }
 
-        rowData.push(cell(rowTitle.getter(stat)))
+        rowData.push(Cell(rowTitle.getter(stat)))
       }
 
       tables[queryKey].push(rowData)
     }
 
-    for (let row = 1; row < getRowCount(); row++) {
+    for (let row = 1; row < getRowCount() - 1; row++) {
       let all = []
       for (let col = 1; col < getColumnCount(); col++) {
         all.push(tables[queryKey][col][row].value)
@@ -118,10 +130,54 @@ function renderStats(data) {
       all = objectKeySwapValue(all)
 
       for (let col = 1; col < getColumnCount(); col++) {
-        tables[queryKey][col][row].rank = all[tables[queryKey][col][row].value]
+        tables[queryKey][col][row].rank = Number(all[tables[queryKey][col][row].value])
+      }
+    }
+
+    if (rowTitles[scoreRowKey].isEnable) {
+      for (let col = 1; col < getColumnCount(); col++) {
+        let totalScore = 0;
+        for (let row = 1; row < getRowCount() - 1; row++) {
+          if (tables[queryKey][col][row].rank) {
+            if (rowTitles[row].isEnable) {
+              totalScore += tables[queryKey][col][row].rank
+            }
+          }
+        }
+
+        tables[queryKey][col][getRowCount() - 1] = Cell(totalScore)
       }
     }
   }
+
+  // calculate global total score
+  if (rowTitles[scoreRowKey].isEnable) {
+    const total = [{0: Cell(''), [scoreRowKey]: Cell('total score')}]
+
+    for (const variant of variants) {
+      const column = [Cell(variant)]
+
+      const getVariantKey = variant => {
+        for (const key in variants) {
+          if (variants[key] === variant) {
+            return Number(key)
+          }
+        }
+      }
+
+      let totalScoreByQuery = 0
+      for (const query in tables) {
+        const variantColumn = tables[query][getVariantKey(variant) + 1]
+        totalScoreByQuery += tables[query][getVariantKey(variant) + 1][variantColumn.length - 1].value
+      }
+
+      column[scoreRowKey] = Cell(totalScoreByQuery)
+      total.push(column)
+    }
+    tables['total'] = total
+    console.log(tables['total'])
+  }
+
   let html = ''
   for (const queryName in tables) {
     html += getQueryHtml(tables[queryName], queryName)
